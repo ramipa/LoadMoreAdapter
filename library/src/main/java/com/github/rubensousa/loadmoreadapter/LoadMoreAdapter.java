@@ -18,44 +18,33 @@ package com.github.rubensousa.loadmoreadapter;
 
 
 import android.os.Bundle;
-import android.support.annotation.LayoutRes;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.annotation.LayoutRes;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
 public abstract class LoadMoreAdapter extends RecyclerView.Adapter<LoadMoreAdapter.ViewHolder>
         implements ScrollListener.OnEventListener {
 
-    private static final String STATE_LOADING_ENABLED = "loading_enabled";
-    private static final String STATE_LOADING = "loading";
-
     public static final int VIEW_PROGRESS = 1;
     public static final int VIEW_NORMAL = 0;
-
+    private static final String STATE_LOADING_ENABLED = "loading_enabled";
+    private static final String STATE_LOADING = "loading";
+    private final boolean mInversed;
     private OnLoadMoreListener mLoadMoreListener;
     private ScrollListener mScrollListener;
-
     @LayoutRes
-    private int mProgressLayout;
-
+    private final int mProgressLayout;
     private boolean mLoading = false;
     private boolean mLoadingEnabled = true;
-    private int mVisibleThreshold;
-    private final boolean mInversed;
+    private final int mVisibleThreshold;
 
     public LoadMoreAdapter() {
         this(R.layout.loadmoreadapter_adapter_progress, 5, false);
-    }
-
-    public LoadMoreAdapter(int progressLayout) {
-        this(progressLayout, 5, false);
-    }
-
-    public LoadMoreAdapter(int progressLayout, int threshold) {
-        this(progressLayout, threshold, false);
     }
 
     public LoadMoreAdapter(int progressLayout,
@@ -65,9 +54,13 @@ public abstract class LoadMoreAdapter extends RecyclerView.Adapter<LoadMoreAdapt
         mVisibleThreshold = threshold;
     }
 
-    public abstract List getItems();
+    public LoadMoreAdapter(int progressLayout) {
+        this(progressLayout, 5, false);
+    }
 
-    public abstract ViewHolder onCreateNormalViewHolder(ViewGroup parent, int viewType);
+    public LoadMoreAdapter(int progressLayout, int threshold) {
+        this(progressLayout, threshold, false);
+    }
 
     public void restoreState(Bundle restoreState) {
         if (restoreState != null) {
@@ -159,6 +152,19 @@ public abstract class LoadMoreAdapter extends RecyclerView.Adapter<LoadMoreAdapt
         setLoading(true);
     }
 
+    public abstract List getItems();
+
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        if (viewType == VIEW_PROGRESS) {
+            return new ViewHolder(LayoutInflater.from(parent.getContext())
+                    .inflate(mProgressLayout, parent, false));
+        }
+
+        return onCreateNormalViewHolder(parent, viewType);
+    }
+
+    public abstract ViewHolder onCreateNormalViewHolder(ViewGroup parent, int viewType);
 
     @Override
     public int getItemViewType(int position) {
@@ -171,24 +177,14 @@ public abstract class LoadMoreAdapter extends RecyclerView.Adapter<LoadMoreAdapt
         return items.get(position) == null ? VIEW_PROGRESS : VIEW_NORMAL;
     }
 
-    @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if (viewType == VIEW_PROGRESS) {
-            return new ViewHolder(LayoutInflater.from(parent.getContext())
-                    .inflate(mProgressLayout, parent, false));
-        }
-
-        return onCreateNormalViewHolder(parent, viewType);
+    public interface OnLoadMoreListener {
+        void onLoadMore(int offset);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ViewHolder(View itemView) {
             super(itemView);
         }
-    }
-
-    public interface OnLoadMoreListener {
-        void onLoadMore(int offset);
     }
 
 }
