@@ -1,33 +1,39 @@
 package com.github.rubensousa.loadmoreadapter.sample;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.LinearLayout;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.appcompat.widget.Toolbar;
 
 import com.github.rubensousa.loadmoreadapter.LoadMoreAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements LoadMoreAdapter.OnLoadMoreListener {
+public class MainActivity extends AppCompatActivity implements LoadMoreAdapter.OnLoadMoreListener{
 
     CustomAdapter mAdapter;
     private RecyclerView mRecyclerView;
+    private LinearLayout progressView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+        progressView = findViewById(R.id.progress_view);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.app_name);
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        mRecyclerView = findViewById(R.id.recyclerView);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mAdapter = new CustomAdapter();
-        mAdapter.setOnLoadMoreListener(this);
+        mAdapter = new CustomAdapter(this, null);
 
         if (savedInstanceState == null) {
             mAdapter.addData(getData(0));
@@ -56,13 +62,14 @@ public class MainActivity extends AppCompatActivity implements LoadMoreAdapter.O
 
     @Override
     public void onLoadMore(final int offset) {
-        mRecyclerView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (mAdapter != null) {
-                    // If loading fails, call setLoading(false) to cancel loading more
-                    mAdapter.addData(getData(offset));
-                }
+
+        progressView.setVisibility(View.VISIBLE);
+
+        mRecyclerView.postDelayed(() -> {
+            if (mAdapter != null) {
+                // If loading fails, call setLoading(false) to cancel loading more
+                mAdapter.addData(getData(offset));
+                progressView.setVisibility(View.GONE);
             }
         }, 1500);
     }

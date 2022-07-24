@@ -7,7 +7,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.github.rubensousa.loadmoreadapter.LoadMoreAdapter;
+import com.github.rubensousa.loadmoreadapter.ScrollListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,14 +22,8 @@ public class CustomAdapter extends LoadMoreAdapter {
 
     private ArrayList<String> mData = new ArrayList<>();
 
-    public CustomAdapter() {
-
-    }
-
-    @Override
-    public void saveState(Bundle outState) {
-        super.saveState(outState);
-        outState.putStringArrayList(STATE_DATA, mData);
+    public CustomAdapter(@NonNull OnLoadMoreListener loadMoreListener, @Nullable ScrollListener scrollListener) {
+        super(loadMoreListener, scrollListener);
     }
 
     @Override
@@ -36,13 +34,10 @@ public class CustomAdapter extends LoadMoreAdapter {
         }
     }
 
-
-    public void addData(List<String> data) {
-        // Use this here to avoid forgetting about calling this
-        setLoading(false);
-        int previousSize = mData.size();
-        mData.addAll(data);
-        notifyItemRangeInserted(previousSize, data.size());
+    @Override
+    public void saveState(Bundle outState) {
+        super.saveState(outState);
+        outState.putStringArrayList(STATE_DATA, mData);
     }
 
     @Override
@@ -54,6 +49,14 @@ public class CustomAdapter extends LoadMoreAdapter {
     public ViewHolder onCreateNormalViewHolder(ViewGroup parent, int viewType) {
         return new ViewHolder(LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.adapter, parent, false));
+    }
+
+    public void addData(List<String> data) {
+        // Use this here to avoid forgetting about calling this
+        setLoadingState(false);
+        int previousSize = mData.size();
+        mData.addAll(data);
+        notifyItemRangeInserted(previousSize, data.size());
     }
 
     @Override
@@ -74,7 +77,7 @@ public class CustomAdapter extends LoadMoreAdapter {
 
         public ViewHolder(View itemView) {
             super(itemView);
-            textView = (TextView) itemView.findViewById(R.id.textView);
+            textView = itemView.findViewById(R.id.textView);
         }
 
         public void setData(String data) {
